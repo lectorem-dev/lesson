@@ -21,6 +21,8 @@ spring:
     change-log: classpath:db/changelog/db.changelog-master.sql
 
 app:
+  content:
+    root: ${CONTENT_ROOT:../content}
   jwt:
     secret: ${JWT_SECRET:change-me-change-me-change-me-change-me}
     expiration: ${JWT_EXPIRATION:24h}

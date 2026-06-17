@@ -54,8 +54,17 @@ function getSubmitError(error: unknown) {
 }
 
 export function LessonPage() {
-  const navigate = useNavigate()
   const { lessonId: lessonIdParam } = useParams()
+
+  return <LessonPageContent key={lessonIdParam ?? 'invalid'} lessonIdParam={lessonIdParam} />
+}
+
+type LessonPageContentProps = {
+  lessonIdParam?: string
+}
+
+function LessonPageContent({ lessonIdParam }: LessonPageContentProps) {
+  const navigate = useNavigate()
   const lessonId = parseLessonId(lessonIdParam)
   const [lesson, setLesson] = useState<LessonDetails | null>(null)
   const [loadError, setLoadError] = useState<LessonError | null>(null)
@@ -187,6 +196,7 @@ export function LessonPage() {
             isSubmitting={isSubmitting}
             onSubmit={handleSubmit}
             test={lesson.test}
+            key={lesson.id}
           />
         )}
       </div>

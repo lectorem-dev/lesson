@@ -444,21 +444,25 @@ p {
 }
 
 .lesson-markdown {
-  line-height: 1.65;
+  width: min(100%, 820px);
 }
 
-.lesson-markdown h1,
-.lesson-markdown h2,
-.lesson-markdown h3 {
-  margin: 18px 0 10px;
-  line-height: 1.25;
+.lesson-markdown__body {
+  padding: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: #fff;
+  color: var(--color-text);
 }
 
-.lesson-markdown p,
-.lesson-markdown ul,
-.lesson-markdown ol,
-.lesson-markdown pre {
-  margin: 0 0 12px;
+.lesson-markdown__body img {
+  max-width: 100%;
+}
+
+.lesson-markdown__body table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .lesson-markdown--empty {
@@ -576,5 +580,9 @@ p {
   .lesson-test__header {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .lesson-markdown__body {
+    padding: 20px;
   }
 }

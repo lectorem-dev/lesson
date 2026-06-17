@@ -1,4 +1,5 @@
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 type MarkdownLessonContentProps = {
   markdownContent: string
@@ -15,7 +16,9 @@ export function MarkdownLessonContent({ markdownContent }: MarkdownLessonContent
 
   return (
     <section className="lesson-markdown">
-      <ReactMarkdown>{markdownContent}</ReactMarkdown>
+      <article className="markdown-body lesson-markdown__body">
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdownContent}</ReactMarkdown>
+      </article>
     </section>
   )
 }

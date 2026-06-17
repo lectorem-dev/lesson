@@ -1,16 +1,7 @@
-FROM eclipse-temurin:17-jdk AS build
+FROM python:3.12-slim
 
-WORKDIR /app
-
-COPY gradlew ./
-COPY gradle ./gradle
-COPY build.gradle settings.gradle ./
-COPY src ./src
-
-RUN chmod +x ./gradlew
-RUN ./gradlew clean bootJar --no-daemon
-
-FROM eclipse-temurin:17-jre
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
@@ -18,8 +9,13 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=build /app/build/libs/*.jar app.jar
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY app ./app
+COPY alembic ./alembic
+COPY alembic.ini .
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${APP_PORT:-8080}"]

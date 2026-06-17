@@ -7,14 +7,14 @@ export type LoginRequest = {
 
 export type LoginResponse = {
   token: string
-  userId: number
+  userId: string
   login: string
   name: string
   role: Role
 }
 
 export type AuthUser = {
-  userId: number
+  userId: string
   login: string
   name: string
   role: Role

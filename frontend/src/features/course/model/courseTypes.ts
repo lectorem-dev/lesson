@@ -1,5 +1,5 @@
 export type CourseSummary = {
-  id: number
+  id: string
   title: string
   description: string | null
   progressPercent: number
@@ -10,7 +10,7 @@ export type CourseSummary = {
 export type LessonStatus = 'LOCKED' | 'AVAILABLE' | 'PASSED'
 
 export type LessonListItem = {
-  id: number
+  id: string
   position: number
   title: string
   status: LessonStatus
@@ -19,7 +19,7 @@ export type LessonListItem = {
 }
 
 export type LessonDetails = {
-  id: number
+  id: string
   position: number
   title: string
   markdownContent: string
@@ -32,19 +32,19 @@ export type LessonTest = {
 }
 
 export type TestQuestion = {
-  id: number
+  id: string
   text: string
   answers: TestAnswer[]
 }
 
 export type TestAnswer = {
-  id: number
+  id: string
   text: string
 }
 
 export type SubmitAnswer = {
-  questionId: number
-  answerId: number
+  questionId: string
+  answerId: string
 }
 
 export type SubmitTestRequest = {
@@ -55,7 +55,7 @@ export type SubmitTestResponse = {
   passed: boolean
   scorePercent: number
   passPercent: number
-  nextLessonId: number | null
+  nextLessonId: string | null
   courseCompleted: boolean
 }
 

@@ -18,12 +18,12 @@ export async function getLessons() {
   return response.data
 }
 
-export async function getLessonById(lessonId: number) {
+export async function getLessonById(lessonId: string) {
   const response = await httpClient.get<LessonDetails>(`/api/course/lessons/${lessonId}`)
   return response.data
 }
 
-export async function submitLessonTest(lessonId: number, request: SubmitTestRequest) {
+export async function submitLessonTest(lessonId: string, request: SubmitTestRequest) {
   const response = await httpClient.post<SubmitTestResponse>(
     `/api/course/lessons/${lessonId}/submit`,
     request,

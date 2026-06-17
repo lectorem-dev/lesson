@@ -1,6 +1,7 @@
 package ru.istok.backend.course.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,8 +12,8 @@ import lombok.NoArgsConstructor;
 @Schema(description = "Краткая информация об уроке")
 public class LessonListItemResponse {
 
-    @Schema(description = "Идентификатор урока", example = "2")
-    private Long id;
+    @Schema(description = "Идентификатор урока", example = "550e8400-e29b-41d4-a716-446655440000")
+    private UUID id;
 
     @Schema(description = "Порядковый номер урока", example = "2")
     private Integer position;

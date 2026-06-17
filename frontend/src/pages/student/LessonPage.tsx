@@ -16,11 +16,19 @@ type LessonError = {
   message: string
 }
 
-type SelectedAnswers = Record<number, number>
+type SelectedAnswers = Record<string, string>
 
 function parseLessonId(value: string | undefined) {
-  const parsed = Number(value)
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : null
+  const normalized = value?.trim()
+  if (!normalized) {
+    return null
+  }
+
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    normalized,
+  )
+    ? normalized
+    : null
 }
 
 function getLoadError(error: unknown): LessonError {

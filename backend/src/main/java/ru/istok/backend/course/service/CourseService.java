@@ -2,6 +2,7 @@ package ru.istok.backend.course.service;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -71,7 +72,7 @@ public class CourseService {
         User user = getCurrentUser();
         Course course = getMainCourse();
         List<Lesson> lessons = getCourseLessons(course);
-        Map<Long, LessonProgress> progressByLessonId = getProgressByLessonId(user.getId(), lessons);
+        Map<UUID, LessonProgress> progressByLessonId = getProgressByLessonId(user.getId(), lessons);
 
         List<LessonListItemResponse> response = new ArrayList<>();
         for (Lesson lesson : lessons) {
@@ -91,12 +92,12 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-    public LessonResponse getLesson(Long lessonId) {
+    public LessonResponse getLesson(UUID lessonId) {
         User user = getCurrentUser();
         Course course = getMainCourse();
         List<Lesson> lessons = getCourseLessons(course);
         Lesson lesson = findLessonInCourse(lessonId, lessons);
-        Map<Long, LessonProgress> progressByLessonId = getProgressByLessonId(user.getId(), lessons);
+        Map<UUID, LessonProgress> progressByLessonId = getProgressByLessonId(user.getId(), lessons);
 
         if (getLessonStatus(lesson, progressByLessonId) == LessonStatus.LOCKED) {
             throw new LessonLockedException();
@@ -104,7 +105,7 @@ public class CourseService {
 
         LessonPassRule rule = getPassRule(lesson.getId());
         List<TestQuestion> questions = testQuestionRepository.findByLessonIdOrderByPositionAsc(lesson.getId());
-        Map<Long, List<TestAnswer>> answersByQuestionId = getAnswersByQuestionId(questions);
+        Map<UUID, List<TestAnswer>> answersByQuestionId = getAnswersByQuestionId(questions);
 
         List<TestQuestionResponse> questionResponses = questions.stream()
                 .map(question -> toQuestionResponse(question, answersByQuestionId.getOrDefault(question.getId(), List.of())))
@@ -120,12 +121,12 @@ public class CourseService {
     }
 
     @Transactional
-    public LessonSubmitResponse submitLesson(Long lessonId, LessonSubmitRequest request) {
+    public LessonSubmitResponse submitLesson(UUID lessonId, LessonSubmitRequest request) {
         User user = getCurrentUser();
         Course course = getMainCourse();
         List<Lesson> lessons = getCourseLessons(course);
         Lesson lesson = findLessonInCourse(lessonId, lessons);
-        Map<Long, LessonProgress> progressByLessonId = getProgressByLessonId(user.getId(), lessons);
+        Map<UUID, LessonProgress> progressByLessonId = getProgressByLessonId(user.getId(), lessons);
 
         if (getLessonStatus(lesson, progressByLessonId) == LessonStatus.LOCKED) {
             throw new LessonLockedException();
@@ -133,13 +134,13 @@ public class CourseService {
 
         LessonPassRule rule = getPassRule(lesson.getId());
         List<TestQuestion> questions = testQuestionRepository.findByLessonIdOrderByPositionAsc(lesson.getId());
-        Map<Long, List<TestAnswer>> answersByQuestionId = getAnswersByQuestionId(questions);
-        Map<Long, TestQuestion> questionById = questions.stream()
+        Map<UUID, List<TestAnswer>> answersByQuestionId = getAnswersByQuestionId(questions);
+        Map<UUID, TestQuestion> questionById = questions.stream()
                 .collect(Collectors.toMap(TestQuestion::getId, Function.identity()));
 
         validateSubmitRequest(request, questionById.keySet(), answersByQuestionId);
 
-        Map<Long, Long> selectedAnswerByQuestionId = request.getAnswers().stream()
+        Map<UUID, UUID> selectedAnswerByQuestionId = request.getAnswers().stream()
                 .collect(Collectors.toMap(
                         LessonSubmitAnswerRequest::getQuestionId,
                         LessonSubmitAnswerRequest::getAnswerId
@@ -155,7 +156,7 @@ public class CourseService {
             savePassedProgress(user, lesson, scorePercent);
         }
 
-        Long nextLessonId = passed ? getNextLessonId(lesson, lessons) : null;
+        UUID nextLessonId = passed ? getNextLessonId(lesson, lessons) : null;
         boolean courseCompleted = passed && countCompletedLessons(user.getId(), course.getId()) == lessons.size();
 
         return new LessonSubmitResponse(
@@ -189,15 +190,15 @@ public class CourseService {
 
     private void validateSubmitRequest(
             LessonSubmitRequest request,
-            Set<Long> expectedQuestionIds,
-            Map<Long, List<TestAnswer>> answersByQuestionId
+            Set<UUID> expectedQuestionIds,
+            Map<UUID, List<TestAnswer>> answersByQuestionId
     ) {
         if (request.getAnswers() == null || request.getAnswers().isEmpty()) {
             throw new SubmitValidationException("Нужно передать ответы на все вопросы");
         }
 
         // Клиент должен прислать ровно по одному ответу на каждый вопрос именно этого урока.
-        Set<Long> requestQuestionIds = new HashSet<>();
+        Set<UUID> requestQuestionIds = new HashSet<>();
         for (LessonSubmitAnswerRequest answer : request.getAnswers()) {
             if (answer.getQuestionId() == null || answer.getAnswerId() == null) {
                 throw new SubmitValidationException("Для каждого ответа нужны questionId и answerId");
@@ -207,14 +208,14 @@ public class CourseService {
             }
         }
 
-        Set<Long> missingQuestionIds = expectedQuestionIds.stream()
+        Set<UUID> missingQuestionIds = expectedQuestionIds.stream()
                 .filter(questionId -> !requestQuestionIds.contains(questionId))
                 .collect(Collectors.toSet());
         if (!missingQuestionIds.isEmpty()) {
             throw new SubmitValidationException("Нет ответов для вопросов: " + missingQuestionIds);
         }
 
-        Set<Long> extraQuestionIds = requestQuestionIds.stream()
+        Set<UUID> extraQuestionIds = requestQuestionIds.stream()
                 .filter(questionId -> !expectedQuestionIds.contains(questionId))
                 .collect(Collectors.toSet());
         if (!extraQuestionIds.isEmpty()) {
@@ -227,13 +228,13 @@ public class CourseService {
                     .anyMatch(testAnswer -> testAnswer.getId().equals(answer.getAnswerId()));
             if (!belongsToQuestion) {
                 throw new SubmitValidationException(
-                        "Ответ %d не относится к вопросу %d".formatted(answer.getAnswerId(), answer.getQuestionId())
+                        "Ответ %s не относится к вопросу %s".formatted(answer.getAnswerId(), answer.getQuestionId())
                 );
             }
         }
     }
 
-    private boolean isCorrectAnswer(Long questionId, Long answerId, Map<Long, List<TestAnswer>> answersByQuestionId) {
+    private boolean isCorrectAnswer(UUID questionId, UUID answerId, Map<UUID, List<TestAnswer>> answersByQuestionId) {
         return answersByQuestionId.getOrDefault(questionId, List.of())
                 .stream()
                 .anyMatch(answer -> answer.getId().equals(answerId) && Boolean.TRUE.equals(answer.getCorrect()));
@@ -255,7 +256,7 @@ public class CourseService {
         lessonProgressRepository.save(progress);
     }
 
-    private Long getNextLessonId(Lesson lesson, List<Lesson> lessons) {
+    private UUID getNextLessonId(Lesson lesson, List<Lesson> lessons) {
         return lessons.stream()
                 .filter(candidate -> candidate.getPosition().equals(lesson.getPosition() + 1))
                 .map(Lesson::getId)
@@ -263,7 +264,7 @@ public class CourseService {
                 .orElse(null);
     }
 
-    private LessonStatus getLessonStatus(Lesson lesson, Map<Long, LessonProgress> progressByLessonId) {
+    private LessonStatus getLessonStatus(Lesson lesson, Map<UUID, LessonProgress> progressByLessonId) {
         LessonProgress currentProgress = progressByLessonId.get(lesson.getId());
         if (currentProgress != null && Boolean.TRUE.equals(currentProgress.getPassed())) {
             return LessonStatus.PASSED;
@@ -282,8 +283,8 @@ public class CourseService {
         return previousPassed ? LessonStatus.AVAILABLE : LessonStatus.LOCKED;
     }
 
-    private Map<Long, LessonProgress> getProgressByLessonId(Long userId, List<Lesson> lessons) {
-        List<Long> lessonIds = lessons.stream().map(Lesson::getId).toList();
+    private Map<UUID, LessonProgress> getProgressByLessonId(UUID userId, List<Lesson> lessons) {
+        List<UUID> lessonIds = lessons.stream().map(Lesson::getId).toList();
         if (lessonIds.isEmpty()) {
             return Map.of();
         }
@@ -293,13 +294,13 @@ public class CourseService {
                 .collect(Collectors.toMap(progress -> progress.getLesson().getId(), Function.identity()));
     }
 
-    private Map<Long, List<TestAnswer>> getAnswersByQuestionId(List<TestQuestion> questions) {
-        List<Long> questionIds = questions.stream().map(TestQuestion::getId).toList();
+    private Map<UUID, List<TestAnswer>> getAnswersByQuestionId(List<TestQuestion> questions) {
+        List<UUID> questionIds = questions.stream().map(TestQuestion::getId).toList();
         if (questionIds.isEmpty()) {
             return Map.of();
         }
 
-        Map<Long, List<TestAnswer>> answersByQuestionId = new HashMap<>();
+        Map<UUID, List<TestAnswer>> answersByQuestionId = new HashMap<>();
         for (TestAnswer answer : testAnswerRepository.findByQuestionIdInOrderByQuestionIdAscPositionAsc(questionIds)) {
             answersByQuestionId.computeIfAbsent(answer.getQuestion().getId(), ignored -> new ArrayList<>()).add(answer);
         }
@@ -307,11 +308,11 @@ public class CourseService {
         return answersByQuestionId;
     }
 
-    private Lesson findLessonInCourse(Long lessonId, List<Lesson> lessons) {
+    private Lesson findLessonInCourse(UUID lessonId, List<Lesson> lessons) {
         return lessons.stream()
                 .filter(lesson -> lesson.getId().equals(lessonId))
                 .findFirst()
-                .orElseThrow(() -> new LessonNotFoundException());
+                .orElseThrow(LessonNotFoundException::new);
     }
 
     private Course getMainCourse() {
@@ -323,12 +324,12 @@ public class CourseService {
         return lessonRepository.findByCourseOrderByPositionAsc(course);
     }
 
-    private LessonPassRule getPassRule(Long lessonId) {
+    private LessonPassRule getPassRule(UUID lessonId) {
         return lessonPassRuleRepository.findByLessonId(lessonId)
-                .orElseThrow(() -> new IllegalStateException("Для урока %d не найдено правило прохождения".formatted(lessonId)));
+                .orElseThrow(() -> new IllegalStateException("Для урока %s не найдено правило прохождения".formatted(lessonId)));
     }
 
-    private int countCompletedLessons(Long userId, Long courseId) {
+    private int countCompletedLessons(UUID userId, UUID courseId) {
         return Math.toIntExact(lessonProgressRepository.countByUserIdAndLessonCourseIdAndPassedTrue(userId, courseId));
     }
 

@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
+import java.util.UUID;
 import javax.crypto.SecretKey;
 import org.springframework.stereotype.Service;
 import ru.istok.backend.config.JwtProperties;
@@ -33,7 +34,7 @@ public class JwtService {
         return Jwts.builder()
                 .subject(user.getLogin())
                 .claims(Map.of(
-                        "userId", user.getId(),
+                        "userId", user.getId().toString(),
                         "login", user.getLogin(),
                         "role", user.getRole().name()
                 ))
@@ -53,7 +54,7 @@ public class JwtService {
                     .getPayload();
 
             return new JwtUser(
-                    claims.get("userId", Long.class),
+                    UUID.fromString(claims.get("userId", String.class)),
                     claims.get("login", String.class),
                     UserRole.valueOf(claims.get("role", String.class))
             );

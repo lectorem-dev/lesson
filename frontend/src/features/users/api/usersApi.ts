@@ -6,7 +6,7 @@ export async function getUsers() {
   return response.data
 }
 
-export async function getUser(id: number) {
+export async function getUser(id: string) {
   const response = await httpClient.get<User>(`/api/admin/users/${id}`)
   return response.data
 }
@@ -16,11 +16,11 @@ export async function createUser(request: UserCreateRequest) {
   return response.data
 }
 
-export async function updateUser(id: number, request: UserUpdateRequest) {
+export async function updateUser(id: string, request: UserUpdateRequest) {
   const response = await httpClient.put<User>(`/api/admin/users/${id}`, request)
   return response.data
 }
 
-export async function archiveUser(id: number) {
+export async function archiveUser(id: string) {
   await httpClient.delete(`/api/admin/users/${id}`)
 }

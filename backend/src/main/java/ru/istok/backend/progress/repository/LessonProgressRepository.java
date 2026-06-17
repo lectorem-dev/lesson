@@ -3,14 +3,15 @@ package ru.istok.backend.progress.repository;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import ru.istok.backend.progress.entity.LessonProgress;
 
-public interface LessonProgressRepository extends JpaRepository<LessonProgress, Long> {
+public interface LessonProgressRepository extends JpaRepository<LessonProgress, UUID> {
 
-    Optional<LessonProgress> findByUserIdAndLessonId(Long userId, Long lessonId);
+    Optional<LessonProgress> findByUserIdAndLessonId(UUID userId, UUID lessonId);
 
-    List<LessonProgress> findByUserIdAndLessonIdIn(Long userId, Collection<Long> lessonIds);
+    List<LessonProgress> findByUserIdAndLessonIdIn(UUID userId, Collection<UUID> lessonIds);
 
-    long countByUserIdAndLessonCourseIdAndPassedTrue(Long userId, Long courseId);
+    long countByUserIdAndLessonCourseIdAndPassedTrue(UUID userId, UUID courseId);
 }

@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -58,7 +59,7 @@ public class CourseController {
     })
     public LessonResponse getLesson(
             @Parameter(description = "Идентификатор урока", required = true)
-            @PathVariable Long lessonId
+            @PathVariable UUID lessonId
     ) {
         return courseService.getLesson(lessonId);
     }
@@ -73,7 +74,7 @@ public class CourseController {
     })
     public LessonSubmitResponse submitLesson(
             @Parameter(description = "Идентификатор урока", required = true)
-            @PathVariable Long lessonId,
+            @PathVariable UUID lessonId,
             @Valid
             @RequestBody(description = "Ответы студента на вопросы теста", required = true)
             @org.springframework.web.bind.annotation.RequestBody LessonSubmitRequest request

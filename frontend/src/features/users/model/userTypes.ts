@@ -13,7 +13,7 @@ export const USER_STATUS_LABEL: Record<UserStatus, string> = {
 }
 
 export type User = {
-  id: number
+  id: string
   name: string
   login: string
   role: Role

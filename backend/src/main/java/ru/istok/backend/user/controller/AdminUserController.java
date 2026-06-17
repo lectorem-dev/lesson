@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -46,7 +47,7 @@ public class AdminUserController {
     })
     public UserResponse getUser(
             @Parameter(description = "Идентификатор пользователя", required = true)
-            @PathVariable Long id
+            @PathVariable UUID id
     ) {
         return userService.findById(id);
     }
@@ -77,7 +78,7 @@ public class AdminUserController {
     })
     public UserResponse updateUser(
             @Parameter(description = "Идентификатор пользователя", required = true)
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @Valid
             @RequestBody(description = "Новые данные пользователя", required = true)
             @org.springframework.web.bind.annotation.RequestBody UserUpdateRequest request
@@ -94,7 +95,7 @@ public class AdminUserController {
     })
     public void archiveUser(
             @Parameter(description = "Идентификатор пользователя", required = true)
-            @PathVariable Long id
+            @PathVariable UUID id
     ) {
         userService.archive(id);
     }

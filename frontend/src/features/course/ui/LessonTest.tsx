@@ -2,7 +2,7 @@ import { type FormEvent, useMemo, useState } from 'react'
 import { Button } from '../../../shared/ui/Button'
 import type { LessonTest as LessonTestType } from '../model/courseTypes'
 
-type SelectedAnswers = Record<number, number>
+type SelectedAnswers = Record<string, string>
 
 type LessonTestProps = {
   error: string

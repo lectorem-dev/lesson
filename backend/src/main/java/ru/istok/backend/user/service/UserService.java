@@ -1,5 +1,6 @@
 package ru.istok.backend.user.service;
 
+import java.util.UUID;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,7 +34,7 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserResponse findById(Long id) {
+    public UserResponse findById(UUID id) {
         return userMapper.toResponse(getUser(id));
     }
 
@@ -52,7 +53,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponse update(Long id, UserUpdateRequest request) {
+    public UserResponse update(UUID id, UserUpdateRequest request) {
         User user = getUser(id);
         validateLoginIsFreeForUpdate(request.getLogin(), id);
 
@@ -69,25 +70,25 @@ public class UserService {
     }
 
     @Transactional
-    public void archive(Long id) {
+    public void archive(UUID id) {
         User user = getUser(id);
         user.setStatus(UserStatus.ARCHIVED);
     }
 
-    private User getUser(Long id) {
+    private User getUser(UUID id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(id));
+                .orElseThrow(UserNotFoundException::new);
     }
 
     private void validateLoginIsFree(String login) {
         if (userRepository.existsByLogin(login)) {
-            throw new LoginAlreadyExistsException(login);
+            throw new LoginAlreadyExistsException();
         }
     }
 
-    private void validateLoginIsFreeForUpdate(String login, Long userId) {
+    private void validateLoginIsFreeForUpdate(String login, UUID userId) {
         if (userRepository.existsByLoginAndIdNot(login, userId)) {
-            throw new LoginAlreadyExistsException(login);
+            throw new LoginAlreadyExistsException();
         }
     }
 }

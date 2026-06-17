@@ -6,7 +6,7 @@
 разработки - в докере запустить бд, а фронт и дев запускать уже локально чтобы быстро вносить изменения без перезапуска
 контейнеров
 
-#### full docker: 
+#### full docker:
 
 ````
 cd infra 
@@ -15,20 +15,22 @@ docker compose up --build
 
 #### dev режим:
 
-Базу данных поднять: 
+Базу данных поднять:
+
 ````
 cd infra 
 docker compose up postgres
 ````
 
 Далее фронт:
+
 ````
 cd frontend
 npm install
 npm run dev
 ````
 
- А бек просто из IDE 
+А бек просто из IDE
 
 #### Порты (ссылки)
 
@@ -49,6 +51,22 @@ npm run dev
 - Миграция LiquidBase
 - Dockerfile
 - Docker-compose
+
+### Как ориентироваться в коде:
+
+**Бекенд** устроен по функциональным блокам (бизнес сущностям): у каждой зоны (`auth`, `course`, `progress`, `user`,
+`certificate`) внутри лежат технические слови `controller`, `service`, `dto`, `entity`, `repository`, а общая
+инфраструктура вынесена в `config`, `security`, `common`; основной поток изменений обычно идет
+`controller -> service -> repository -> entity -> db.migration`.
+
+**Фронтенд** тоже разложен по зонам ответственности: маршруты собраны в `src/app/router.tsx`, страницы лежат в
+`src/pages`, бизнес-логика и API по фичам в `src/features/*`, а общие компоненты, HTTP-клиент и конфиг вынесены в
+`src/shared`.
+
+Если нужно быстро понять, где **менять поведение**, идите от входа: на фронте ищите роут в `src/app/router.tsx`, затем
+страницу и вызов `features/*/api`; на бэке ищите `@GetMapping`/`@PostMapping` или путь из Swagger, потом соответствующий
+`service`, используемые `repository` и в конце таблицы/схему в
+`backend/src/main/resources/db.migration/V001__database.sql`.
 
 ### Важно:
 

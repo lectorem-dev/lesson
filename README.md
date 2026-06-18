@@ -79,3 +79,4 @@ Frontend разложен по слоям:
 
 Если нужно найти обработчик API, начинайте со Swagger: http://localhost:8080/docs. Затем ищите соответствующий router в
 `backend/app/*/router.py`, после него service и repository.
+

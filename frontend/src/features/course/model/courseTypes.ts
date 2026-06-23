@@ -28,12 +28,15 @@ export type LessonDetails = {
 
 export type LessonTest = {
   passPercent: number
+  passScore: number
+  totalScore: number
   questions: TestQuestion[]
 }
 
 export type TestQuestion = {
   id: string
   text: string
+  points: number
   answers: TestAnswer[]
 }
 
@@ -55,6 +58,9 @@ export type SubmitTestResponse = {
   passed: boolean
   scorePercent: number
   passPercent: number
+  score: number
+  passScore: number
+  totalScore: number
   nextLessonId: string | null
   courseCompleted: boolean
 }

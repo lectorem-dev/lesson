@@ -32,12 +32,13 @@ class TestAnswerFile(BaseModel):
 
 class TestQuestionFile(BaseModel):
     text: str = Field(description="Текст вопроса")
+    points: int = Field(ge=1, description="Количество баллов за правильный ответ")
     answers: list[TestAnswerFile] = Field(min_length=2, description="Варианты ответа на вопрос")
 
 
 class TestFile(BaseModel):
     title: Optional[str] = Field(default=None, description="Название теста из файла контента")
-    pass_percent: int = Field(alias="passPercent", ge=1, le=100, description="Минимальный процент для прохождения теста")
+    pass_score: int = Field(alias="passScore", ge=1, description="Минимальный балл для прохождения теста")
     questions: list[TestQuestionFile] = Field(min_length=1, description="Вопросы теста")
 
 
@@ -127,15 +128,21 @@ def read_test(path: Path) -> TestFile:
 
 
 def validate_test(test: TestFile, file_name: str) -> None:
-    if not 1 <= test.pass_percent <= 100:
-        raise ContentImportException(f"Тест '{file_name}' должен содержать passPercent от 1 до 100")
     if not test.questions:
         raise ContentImportException(f"Тест '{file_name}' должен содержать хотя бы один вопрос")
+
+    total_score = sum(question.points for question in test.questions)
+    if test.pass_score > total_score:
+        raise ContentImportException(
+            f"Тест '{file_name}' содержит passScore {test.pass_score}, но максимум за тест: {total_score}"
+        )
 
     # Проверка теста намеренно строгая: frontend не получает correct, поэтому ошибки контента ловим при старте.
     for question_index, question in enumerate(test.questions, start=1):
         if not question.text.strip():
             raise ContentImportException(f"Вопрос {question_index} в '{file_name}' должен содержать текст")
+        if question.points < 1:
+            raise ContentImportException(f"Вопрос {question_index} в '{file_name}' должен содержать points >= 1")
         if len(question.answers) < 2:
             raise ContentImportException(f"Вопрос {question_index} в '{file_name}' должен содержать минимум два ответа")
 
@@ -178,7 +185,9 @@ def upsert_lesson(db: Session, course: Course, loaded_lesson: LoadedLesson) -> N
     if rule is None:
         rule = LessonPassRule(lesson_id=lesson.id)
         db.add(rule)
-    rule.pass_percent = loaded_lesson.test.pass_percent
+    total_score = sum(question.points for question in loaded_lesson.test.questions)
+    rule.pass_score = loaded_lesson.test.pass_score
+    rule.pass_percent = java_round(loaded_lesson.test.pass_score * 100.0 / total_score)
 
     # При переимпорте полностью пересоздаем вопросы и ответы урока, чтобы база совпадала с файлами.
     db.execute(delete(TestQuestion).where(TestQuestion.lesson_id == lesson.id))
@@ -189,6 +198,7 @@ def upsert_lesson(db: Session, course: Course, loaded_lesson: LoadedLesson) -> N
             lesson_id=lesson.id,
             position=question_index,
             text=question_file.text,
+            points=question_file.points,
         )
         db.add(question)
         db.flush()
@@ -202,3 +212,7 @@ def upsert_lesson(db: Session, course: Course, loaded_lesson: LoadedLesson) -> N
                     correct=answer_file.correct,
                 )
             )
+
+
+def java_round(value: float) -> int:
+    return int(value + 0.5)

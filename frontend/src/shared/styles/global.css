@@ -927,6 +927,14 @@ a {
   font-weight: 700;
 }
 
+.test-question__points {
+  display: inline-flex;
+  margin-left: 8px;
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .test-answers {
   display: grid;
   gap: 8px;

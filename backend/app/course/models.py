@@ -43,11 +43,13 @@ class Lesson(Base):
 
 class TestQuestion(Base):
     __tablename__ = "test_questions"
+    __table_args__ = (CheckConstraint("points >= 1", name="chk_test_questions_points"),)
 
     id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     lesson_id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), ForeignKey("lessons.id", ondelete="CASCADE"), nullable=False)
     position: Mapped[int] = mapped_column(Integer, nullable=False)
     text: Mapped[str] = mapped_column(Text, nullable=False)
+    points: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
     updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
 
@@ -73,12 +75,14 @@ class LessonPassRule(Base):
     __tablename__ = "lesson_pass_rules"
     __table_args__ = (
         CheckConstraint("pass_percent BETWEEN 1 AND 100", name="chk_lesson_pass_rules_pass_percent"),
+        CheckConstraint("pass_score >= 1", name="chk_lesson_pass_rules_pass_score"),
         UniqueConstraint("lesson_id", name="uq_lesson_pass_rules_lesson"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     lesson_id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), ForeignKey("lessons.id", ondelete="CASCADE"), nullable=False)
     pass_percent: Mapped[int] = mapped_column(Integer, nullable=False)
+    pass_score: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
     updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
 

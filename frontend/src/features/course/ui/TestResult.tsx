@@ -13,7 +13,10 @@ export function TestResult({ onRetry, result }: TestResultProps) {
   if (result.passed) {
     return (
       <section className="test-result test-result--passed">
-        <p>Тест пройден. Ваш результат: {result.scorePercent}%.</p>
+        <p>
+          Тест пройден. Ваш результат: {result.score} из {result.totalScore} баллов
+          ({result.scorePercent}%).
+        </p>
         {result.courseCompleted ? <p>Курс завершен.</p> : null}
         <div className="form-actions">
           {result.courseCompleted ? (
@@ -37,8 +40,8 @@ export function TestResult({ onRetry, result }: TestResultProps) {
   return (
     <section className="test-result test-result--failed">
       <p>
-        Тест не пройден. Ваш результат: {result.scorePercent}%. Нужно минимум{' '}
-        {result.passPercent}%.
+        Тест не пройден. Ваш результат: {result.score} из {result.totalScore} баллов.
+        Нужно минимум {result.passScore} баллов.
       </p>
       <Button onClick={onRetry} type="button" variant="secondary">
         Пройти заново

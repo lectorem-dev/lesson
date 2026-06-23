@@ -41,11 +41,14 @@ class TestAnswerResponse(ApiModel):
 class TestQuestionResponse(ApiModel):
     id: UUID = Field(description="Идентификатор вопроса", examples=["550e8400-e29b-41d4-a716-446655440000"])
     text: str = Field(description="Текст вопроса")
+    points: int = Field(description="Количество баллов за правильный ответ", examples=[2])
     answers: list[TestAnswerResponse] = Field(description="Список вариантов ответа")
 
 
 class LessonTestResponse(ApiModel):
     pass_percent: int = Field(alias="passPercent", description="Минимальный процент для прохождения теста", examples=[70])
+    pass_score: int = Field(alias="passScore", description="Минимальный балл для прохождения теста", examples=[5])
+    total_score: int = Field(alias="totalScore", description="Максимальный балл за тест", examples=[7])
     questions: list[TestQuestionResponse] = Field(description="Вопросы теста")
 
 
@@ -70,5 +73,8 @@ class LessonSubmitResponse(ApiModel):
     passed: bool = Field(description="Признак успешного прохождения теста", examples=[True])
     score_percent: int = Field(alias="scorePercent", description="Результат теста в процентах", examples=[100])
     pass_percent: int = Field(alias="passPercent", description="Минимальный процент для прохождения", examples=[70])
+    score: int = Field(description="Набранный балл", examples=[6])
+    pass_score: int = Field(alias="passScore", description="Минимальный балл для прохождения", examples=[5])
+    total_score: int = Field(alias="totalScore", description="Максимальный балл за тест", examples=[7])
     next_lesson_id: Optional[UUID] = Field(alias="nextLessonId", description="Идентификатор следующего урока, если тест пройден")
     course_completed: bool = Field(alias="courseCompleted", description="Признак завершения всего курса", examples=[False])

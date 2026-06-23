@@ -11,6 +11,21 @@ type LessonTestProps = {
   test: LessonTestType
 }
 
+function formatPoints(value: number) {
+  const lastDigit = value % 10
+  const lastTwoDigits = value % 100
+
+  if (lastDigit === 1 && lastTwoDigits !== 11) {
+    return `${value} балл`
+  }
+
+  if (lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 12 || lastTwoDigits > 14)) {
+    return `${value} балла`
+  }
+
+  return `${value} баллов`
+}
+
 export function LessonTest({ error, isSubmitting, onSubmit, test }: LessonTestProps) {
   const [selectedAnswers, setSelectedAnswers] = useState<SelectedAnswers>({})
 
@@ -29,7 +44,7 @@ export function LessonTest({ error, isSubmitting, onSubmit, test }: LessonTestPr
     <section className="lesson-test">
       <div className="lesson-test__header">
         <h2>Тест</h2>
-        <span>Минимум для прохождения: {test.passPercent}%</span>
+        <span>Проходной балл: {test.passScore}/{test.totalScore}</span>
       </div>
 
       {error ? <p className="form-error">{error}</p> : null}
@@ -39,6 +54,7 @@ export function LessonTest({ error, isSubmitting, onSubmit, test }: LessonTestPr
           <fieldset className="test-question" key={question.id}>
             <legend>
               {questionIndex + 1}. {question.text}
+              <span className="test-question__points">{formatPoints(question.points)}</span>
             </legend>
             <div className="test-answers">
               {question.answers.map((answer) => (

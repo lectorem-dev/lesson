@@ -75,7 +75,12 @@ def get_lesson(db: Session, user: User, lesson_id: UUID) -> LessonResponse:
         position=lesson.position,
         title=lesson.title,
         markdownContent=lesson.markdown_content,
-        test=LessonTestResponse(passPercent=rule.pass_percent, questions=question_responses),
+        test=LessonTestResponse(
+            passPercent=rule.pass_percent,
+            passScore=rule.pass_score,
+            totalScore=calculate_total_score(questions),
+            questions=question_responses,
+        ),
     )
 
 
@@ -94,13 +99,10 @@ def submit_lesson(db: Session, user: User, lesson_id: UUID, request: LessonSubmi
     validate_submit_request(request, {question.id for question in questions}, answers_by_question_id)
     selected_answer_by_question_id = {answer.question_id: answer.answer_id for answer in request.answers}
 
-    correct_answers = sum(
-        1
-        for question in questions
-        if is_correct_answer(question.id, selected_answer_by_question_id[question.id], answers_by_question_id)
-    )
-    score_percent = java_round(correct_answers * 100.0 / len(questions))
-    passed = score_percent >= rule.pass_percent
+    total_score = calculate_total_score(questions)
+    score = calculate_score(questions, selected_answer_by_question_id, answers_by_question_id)
+    score_percent = java_round(score * 100.0 / total_score)
+    passed = score >= rule.pass_score
 
     if passed:
         save_passed_progress(db, user, lesson, score_percent)
@@ -113,6 +115,9 @@ def submit_lesson(db: Session, user: User, lesson_id: UUID, request: LessonSubmi
         passed=passed,
         scorePercent=score_percent,
         passPercent=rule.pass_percent,
+        score=score,
+        passScore=rule.pass_score,
+        totalScore=total_score,
         nextLessonId=next_lesson_id,
         courseCompleted=course_completed,
     )
@@ -129,7 +134,7 @@ def to_question_response(question: TestQuestion, answers: list[TestAnswer]) -> T
     answer_responses = [TestAnswerResponse(id=answer.id, text=answer.text) for answer in answers]
     # Ответы перемешиваются на каждой выдаче урока, чтобы позиция правильного варианта не запоминалась.
     shuffle(answer_responses)
-    return TestQuestionResponse(id=question.id, text=question.text, answers=answer_responses)
+    return TestQuestionResponse(id=question.id, text=question.text, points=question.points, answers=answer_responses)
 
 
 def validate_submit_request(
@@ -163,6 +168,22 @@ def validate_submit_request(
 
 def is_correct_answer(question_id: UUID, answer_id: UUID, answers_by_question_id: dict[UUID, list[TestAnswer]]) -> bool:
     return any(answer.id == answer_id and answer.correct for answer in answers_by_question_id.get(question_id, []))
+
+
+def calculate_score(
+    questions: list[TestQuestion],
+    selected_answer_by_question_id: dict[UUID, UUID],
+    answers_by_question_id: dict[UUID, list[TestAnswer]],
+) -> int:
+    return sum(
+        question.points
+        for question in questions
+        if is_correct_answer(question.id, selected_answer_by_question_id[question.id], answers_by_question_id)
+    )
+
+
+def calculate_total_score(questions: list[TestQuestion]) -> int:
+    return sum(question.points for question in questions)
 
 
 def save_passed_progress(db: Session, user: User, lesson: Lesson, score_percent: int) -> None:

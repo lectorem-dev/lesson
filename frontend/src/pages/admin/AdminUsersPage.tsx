@@ -31,6 +31,7 @@ export function AdminUsersPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formState, setFormState] = useState<FormState | null>(null)
+  const [archiveTarget, setArchiveTarget] = useState<User | null>(null)
 
   const filteredUsers = useMemo(() => {
     const query = search.trim().toLowerCase()
@@ -101,19 +102,21 @@ export function AdminUsersPage() {
     }
   }
 
-  async function handleArchive(user: User) {
-    const confirmed = window.confirm(`Переместить пользователя "${user.name}" в архив?`)
-    if (!confirmed) {
+  async function handleArchiveConfirm() {
+    if (!archiveTarget) {
       return
     }
-
     setError('')
+    setIsSubmitting(true)
 
     try {
-      await archiveUser(user.id)
+      await archiveUser(archiveTarget.id)
+      setArchiveTarget(null)
       await loadUsers()
     } catch (archiveError) {
       setError(getErrorMessage(archiveError))
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -141,7 +144,7 @@ export function AdminUsersPage() {
         <p className="empty-state">Загрузка...</p>
       ) : (
         <UsersTable
-          onArchive={handleArchive}
+          onArchive={(user) => setArchiveTarget(user)}
           onEdit={(user) => setFormState({ mode: 'edit', user })}
           users={filteredUsers}
         />
@@ -159,6 +162,24 @@ export function AdminUsersPage() {
             onSubmit={handleSubmit}
             user={formState.mode === 'edit' ? formState.user : undefined}
           />
+        </Modal>
+      ) : null}
+
+      {archiveTarget ? (
+        <Modal onClose={() => setArchiveTarget(null)} title="Перенос в архив">
+          <div className="confirm-dialog">
+            <p>
+              Уверены, что хотите перенести пользователя «{archiveTarget.name}» в архив?
+            </p>
+            <div className="form-actions">
+              <Button disabled={isSubmitting} onClick={handleArchiveConfirm} type="button" variant="danger">
+                {isSubmitting ? 'Перенос...' : 'Перенести в архив'}
+              </Button>
+              <Button disabled={isSubmitting} onClick={() => setArchiveTarget(null)} type="button" variant="secondary">
+                Отмена
+              </Button>
+            </div>
+          </div>
         </Modal>
       ) : null}
     </PageLayout>

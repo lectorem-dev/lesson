@@ -61,6 +61,9 @@ export function LoginPage() {
         <Button disabled={isSubmitting} type="submit">
           {isSubmitting ? 'Вход...' : 'Войти'}
         </Button>
+        <Button onClick={() => navigate('/')} type="button" variant="secondary">
+          Назад
+        </Button>
       </form>
     </main>
   )

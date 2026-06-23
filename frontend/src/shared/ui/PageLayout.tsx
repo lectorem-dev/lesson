@@ -16,7 +16,7 @@ export function PageLayout({ actions, children, title }: PageLayoutProps) {
 
   function handleLogout() {
     clearAuth()
-    navigate('/login', { replace: true })
+    navigate('/', { replace: true })
   }
 
   return (

@@ -74,9 +74,18 @@ export function CourseCompletedPage() {
         <section className="course-completed">
           {progress.courseCompleted ? (
             <>
-              <p>Вы успешно завершили курс.</p>
+              <div className="course-completed__mark" aria-hidden="true">
+                ✓
+              </div>
+              <div className="course-completed__content">
+                <h2>Курс успешно завершен</h2>
+                <p>
+                  Вы прошли все уроки Tech Fluency и можете скачать сертификат, подтверждающий
+                  завершение курса.
+                </p>
+              </div>
               {downloadError ? <p className="form-error">{downloadError}</p> : null}
-              <div className="form-actions">
+              <div className="form-actions course-completed__actions">
                 <Button disabled={isDownloading} onClick={handleDownload} type="button">
                   {isDownloading ? 'Скачивание...' : 'Скачать сертификат'}
                 </Button>
@@ -87,10 +96,18 @@ export function CourseCompletedPage() {
             </>
           ) : (
             <>
-              <p>Курс еще не завершен</p>
-              <Button onClick={() => navigate('/student')} type="button" variant="secondary">
-                Вернуться к курсу
-              </Button>
+              <div className="course-completed__mark course-completed__mark--pending" aria-hidden="true">
+                …
+              </div>
+              <div className="course-completed__content">
+                <h2>Курс еще не завершен</h2>
+                <p>Завершите все доступные уроки, чтобы открыть сертификат.</p>
+              </div>
+              <div className="form-actions course-completed__actions">
+                <Button onClick={() => navigate('/student')} type="button" variant="secondary">
+                  Вернуться к курсу
+                </Button>
+              </div>
             </>
           )}
         </section>
